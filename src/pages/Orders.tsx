@@ -12,11 +12,7 @@ interface Order {
   date: string;
 }
 
-const mockOrders: Order[] = [
-  { id: "#AIC12345", amount: 300, type: "Buy", status: "Pending", date: "2023-11-15 10:30 AM" },
-  { id: "#AIC12344", amount: 200, type: "Buy", status: "Approved", date: "2023-11-14 02:15 PM" },
-  { id: "#AIC12343", amount: 500, type: "Sell", status: "Approved", date: "2023-11-13 09:45 AM" },
-];
+const mockOrders: Order[] = [];
 
 const Orders = () => {
   const [filter, setFilter] = useState<"All" | "Pending" | "Approved" | "Rejected">("All");

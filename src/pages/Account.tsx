@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Header from "@/components/Header";
 import MobileNav from "@/components/MobileNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,8 +7,9 @@ import { User, Share2, Copy, Shield, Facebook, Twitter, Instagram, Send } from "
 import { toast } from "sonner";
 
 const Account = () => {
-  const referralLink = "https://aiccoinwallet.com/signup?ref=2PWAZC";
-  const referralCode = "2PWAZC";
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const referralLink = `https://aiccoinwallet.com/signup?ref=${user.id}`;
+  const referralCode = user.id || "2PWAZC";
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -30,11 +32,11 @@ const Account = () => {
           <CardContent className="space-y-3">
             <div className="flex justify-between py-2 border-b">
               <span className="text-muted-foreground font-semibold">Phone Number</span>
-              <span className="font-bold">7576894710</span>
+              <span className="font-bold">{user.phone || "Not available"}</span>
             </div>
             <div className="flex justify-between py-2 border-b">
               <span className="text-muted-foreground font-semibold">UID</span>
-              <span className="font-bold">DT4710</span>
+              <span className="font-bold">{user.id || "DT4710"}</span>
             </div>
             <div className="flex justify-between py-2">
               <span className="text-muted-foreground font-semibold">Country Code</span>
@@ -48,11 +50,11 @@ const Account = () => {
           <CardContent className="p-6">
             <div className="grid grid-cols-2 gap-4 text-center">
               <div>
-                <div className="text-3xl font-bold text-primary mb-1">₹14.00</div>
+                <div className="text-3xl font-bold text-primary mb-1">₹0</div>
                 <div className="text-sm text-muted-foreground">Today's Earnings</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-primary mb-1">₹14.00</div>
+                <div className="text-3xl font-bold text-primary mb-1">₹0</div>
                 <div className="text-sm text-muted-foreground">Total Earnings</div>
               </div>
             </div>

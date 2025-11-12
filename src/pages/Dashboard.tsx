@@ -51,22 +51,12 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Today's Orders */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5" />
-              Today's Buy
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center">
-              <div>
-                <div className="font-semibold">1 Successful Order</div>
-                <div className="text-sm text-muted-foreground">Success Amount: ₹214.00</div>
-              </div>
-              <div className="text-2xl font-bold text-success">₹214.00</div>
-            </div>
+        {/* Promo Banner */}
+        <Card className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
+          <CardContent className="p-6 text-center">
+            <Gift className="w-12 h-12 mx-auto mb-3" />
+            <div className="text-xl font-bold mb-2">Buy your First order get ₹300 reward</div>
+            <div className="text-sm opacity-90">Start trading now and earn instant rewards!</div>
           </CardContent>
         </Card>
 

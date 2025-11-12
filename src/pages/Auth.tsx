@@ -24,19 +24,50 @@ const Auth = () => {
         toast.error("Please enter your phone number and password");
         return;
       }
+      
+      // Check if user exists
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      const user = users.find((u: any) => u.phone === formData.phone && u.password === formData.password);
+      
+      if (!user) {
+        toast.error("Invalid phone number or password");
+        return;
+      }
+      
       toast.success("Login successful!");
-      localStorage.setItem("user", JSON.stringify({ phone: formData.phone, id: "DT4710" }));
+      localStorage.setItem("user", JSON.stringify({ phone: user.phone, id: user.id, name: user.name }));
       navigate("/dashboard");
     } else {
       if (!formData.name || !formData.phone || !formData.password) {
         toast.error("Please fill in all required fields");
         return;
       }
+      
+      // Check if user already exists
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      const existingUser = users.find((u: any) => u.phone === formData.phone);
+      
+      if (existingUser) {
+        toast.error("Phone number already registered");
+        return;
+      }
+      
+      // Create new user
+      const newUser = {
+        name: formData.name,
+        phone: formData.phone,
+        password: formData.password,
+        id: "DT" + Math.floor(1000 + Math.random() * 9000)
+      };
+      
+      users.push(newUser);
+      localStorage.setItem("users", JSON.stringify(users));
+      
       if (formData.referral) {
         toast.success("Referral bonus of ₹50 credited to the referrer!");
       }
       toast.success("Account created successfully!");
-      localStorage.setItem("user", JSON.stringify({ phone: formData.phone, id: "DT4710", name: formData.name }));
+      localStorage.setItem("user", JSON.stringify({ phone: newUser.phone, id: newUser.id, name: newUser.name }));
       navigate("/dashboard");
     }
   };

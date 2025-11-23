@@ -34,14 +34,21 @@ const Auth = () => {
     e.preventDefault();
 
     if (isLogin) {
-      if (!formData.phone || !formData.password) {
+      const phone = formData.phone.trim();
+      const password = formData.password.trim();
+      
+      if (!phone || !password) {
         toast.error("Please enter your phone number and password");
         return;
       }
       
       // Check if user exists
       const users = JSON.parse(localStorage.getItem("users") || "[]");
-      const user = users.find((u: any) => u.phone === formData.phone && u.password === formData.password);
+      console.log("All users:", users);
+      console.log("Trying to login with:", { phone, password });
+      
+      const user = users.find((u: any) => u.phone === phone && u.password === password);
+      console.log("Found user:", user);
       
       if (!user) {
         toast.error("Invalid phone number or password");
@@ -52,14 +59,18 @@ const Auth = () => {
       localStorage.setItem("user", JSON.stringify({ phone: user.phone, id: user.id, name: user.name }));
       navigate("/dashboard");
     } else {
-      if (!formData.name || !formData.phone || !formData.password) {
+      const name = formData.name.trim();
+      const phone = formData.phone.trim();
+      const password = formData.password.trim();
+      
+      if (!name || !phone || !password) {
         toast.error("Please fill in all required fields");
         return;
       }
       
       // Check if user already exists
       const users = JSON.parse(localStorage.getItem("users") || "[]");
-      const existingUser = users.find((u: any) => u.phone === formData.phone);
+      const existingUser = users.find((u: any) => u.phone === phone);
       
       if (existingUser) {
         toast.error("Phone number already registered");
@@ -68,14 +79,16 @@ const Auth = () => {
       
       // Create new user
       const newUser = {
-        name: formData.name,
-        phone: formData.phone,
-        password: formData.password,
-        id: "DT" + Math.floor(1000 + Math.random() * 9000)
+        name: name,
+        phone: phone,
+        password: password,
+        id: "DT" + Math.floor(1000 + Math.random() * 9000),
+        balance: 0
       };
       
       users.push(newUser);
       localStorage.setItem("users", JSON.stringify(users));
+      console.log("New user created:", newUser);
       
       if (formData.referral) {
         toast.success("Referral bonus of ₹50 credited to the referrer!");

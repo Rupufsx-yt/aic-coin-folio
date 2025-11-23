@@ -14,7 +14,21 @@ const Auth = () => {
     password: "",
     referral: "",
   });
+  const [clickCount, setClickCount] = useState(0);
   const navigate = useNavigate();
+
+  const handleLogoClick = () => {
+    const newCount = clickCount + 1;
+    setClickCount(newCount);
+    
+    if (newCount === 5) {
+      toast.success("Admin panel unlocked!");
+      navigate("/admin");
+      setClickCount(0);
+    } else if (newCount > 0) {
+      toast.info(`${5 - newCount} more clicks to access admin`);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,9 +90,17 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center p-4">
       <div className="bg-card rounded-2xl p-8 w-full max-w-md shadow-2xl">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <Coins className="w-10 h-10 text-primary" />
-            <h1 className="text-3xl font-bold text-primary">AIC Coin Wallet</h1>
+          <div 
+            className="flex items-center justify-center gap-3 mb-3 cursor-pointer transition-transform hover:scale-105 active:scale-95"
+            onClick={handleLogoClick}
+          >
+            <div className="relative">
+              <Coins className="w-10 h-10 text-primary animate-pulse" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-secondary rounded-full animate-ping" />
+            </div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              AIC Coin Wallet
+            </h1>
           </div>
           <p className="text-muted-foreground">Buy, Sell & Earn with AIC Tokens</p>
         </div>

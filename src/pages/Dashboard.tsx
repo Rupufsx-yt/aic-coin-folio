@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import MobileNav from "@/components/MobileNav";
@@ -7,6 +8,15 @@ import { ShoppingCart, HandCoins, Plus, Gift, GraduationCap } from "lucide-react
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { uid, balance } = useMemo(() => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const users = JSON.parse(localStorage.getItem("users") || "[]");
+    const currentUser = users.find((u: any) => u.id === user.id);
+    return {
+      uid: currentUser?.id || user.id || "DT4710",
+      balance: currentUser?.balance || 0,
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-muted/30 pb-20">
@@ -19,10 +29,10 @@ const Dashboard = () => {
             <div className="flex justify-between items-start">
               <CardTitle className="text-lg">My Balance</CardTitle>
             </div>
-            <p className="text-sm text-muted-foreground">UID: DT4710</p>
+            <p className="text-sm text-muted-foreground">UID: {uid}</p>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-primary mb-6">₹0 INR</div>
+            <div className="text-4xl font-bold text-primary mb-6">₹{balance.toFixed(2)} INR</div>
             
             {/* Action Buttons */}
             <div className="grid grid-cols-3 gap-3">

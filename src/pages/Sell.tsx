@@ -11,6 +11,11 @@ import { toast } from "sonner";
 
 const Sell = () => {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const users = JSON.parse(localStorage.getItem("users") || "[]");
+  const currentUser = users.find((u: any) => u.id === user.id);
+  const balance = currentUser?.balance || 0;
+  
   const [formData, setFormData] = useState({
     amount: "",
     bankName: "",
@@ -22,8 +27,19 @@ const Sell = () => {
     e.preventDefault();
     
     const amount = Number(formData.amount);
-    if (amount < 100 || amount > 3000) {
-      toast.error("Withdrawal amount must be between ₹100 and ₹3000");
+    
+    if (balance < 500) {
+      toast.error("Minimum balance of ₹500 required for withdrawal");
+      return;
+    }
+    
+    if (amount < 500 || amount > 3000) {
+      toast.error("Withdrawal amount must be between ₹500 and ₹3000");
+      return;
+    }
+    
+    if (amount > balance) {
+      toast.error("Insufficient balance");
       return;
     }
 
@@ -57,17 +73,17 @@ const Sell = () => {
           <CardContent>
             <div className="mb-6">
               <Label className="text-base">Current Balance</Label>
-              <div className="text-3xl font-bold text-primary mt-2">₹0</div>
+              <div className="text-3xl font-bold text-primary mt-2">₹{balance.toFixed(2)}</div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="amount">Withdrawal Amount (₹100 - ₹3000)</Label>
+                <Label htmlFor="amount">Withdrawal Amount (₹500 - ₹3000)</Label>
                 <Input
                   id="amount"
                   type="number"
                   placeholder="Enter amount"
-                  min="100"
+                  min="500"
                   max="3000"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}

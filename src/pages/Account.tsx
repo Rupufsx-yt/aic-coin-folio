@@ -8,6 +8,9 @@ import { toast } from "sonner";
 
 const Account = () => {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const users = JSON.parse(localStorage.getItem("users") || "[]");
+  const currentUser = users.find((u: any) => u.id === user.id);
+  const balance = currentUser?.balance || 0;
   const referralLink = `https://aiccoinwallet.com/signup?ref=${user.id}`;
   const referralCode = user.id || "2PWAZC";
 
@@ -45,18 +48,12 @@ const Account = () => {
           </CardContent>
         </Card>
 
-        {/* Earnings */}
+        {/* Balance */}
         <Card>
           <CardContent className="p-6">
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div>
-                <div className="text-3xl font-bold text-primary mb-1">₹0</div>
-                <div className="text-sm text-muted-foreground">Today's Earnings</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-primary mb-1">₹0</div>
-                <div className="text-sm text-muted-foreground">Total Earnings</div>
-              </div>
+            <div className="text-center">
+              <div className="text-sm text-muted-foreground mb-2">Current Balance</div>
+              <div className="text-4xl font-bold text-primary">₹{balance.toFixed(2)}</div>
             </div>
           </CardContent>
         </Card>

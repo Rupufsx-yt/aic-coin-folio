@@ -49,33 +49,26 @@ const AdminPanel = () => {
       return;
     }
 
-    const updatedUsers = users.map((user) => {
+    const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
+    const updatedUsers = storedUsers.map((user: User) => {
       if (user.id === userId) {
+        const currentBalance = user.balance || 0;
         const newBalance = operation === "increase" 
-          ? (user.balance || 0) + amount 
-          : Math.max(0, (user.balance || 0) - amount);
+          ? currentBalance + amount 
+          : Math.max(0, currentBalance - amount);
         return { ...user, balance: newBalance };
       }
       return user;
     });
 
-    setUsers(updatedUsers);
     localStorage.setItem("users", JSON.stringify(updatedUsers));
-    
-    // Update current user if they're logged in
-    const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-    if (currentUser.id === userId) {
-      const updatedUser = updatedUsers.find(u => u.id === userId);
-      if (updatedUser) {
-        localStorage.setItem("user", JSON.stringify({
-          ...currentUser,
-          balance: updatedUser.balance
-        }));
-      }
-    }
+    setUsers(updatedUsers);
 
-    toast.success(`Balance ${operation === "increase" ? "increased" : "decreased"} successfully`);
+    toast.success(`Balance ${operation === "increase" ? "increased" : "decreased"} by ₹${amount.toFixed(2)}`);
     setAmounts({ ...amounts, [userId]: "" });
+    
+    // Refresh the user list to show updated balance
+    loadUsers();
   };
 
   return (

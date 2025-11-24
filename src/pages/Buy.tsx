@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import MobileNav from "@/components/MobileNav";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, IndianRupee } from "lucide-react";
 import PaymentModal from "@/components/PaymentModal";
 
 interface TokenPack {
@@ -20,12 +19,15 @@ const tokenPacks: TokenPack[] = [
   { name: "Pack B", amount: 300, fixedReward: 20, commission: 21, total: 341 },
   { name: "Pack C", amount: 400, fixedReward: 30, commission: 28, total: 458 },
   { name: "Pack D", amount: 500, fixedReward: 50, commission: 35, total: 585 },
+  { name: "Pack E", amount: 945, fixedReward: 27, commission: 27, total: 999 },
+  { name: "Pack F", amount: 970, fixedReward: 29, commission: 29, total: 1028 },
 ];
 
 const Buy = () => {
   const navigate = useNavigate();
   const [selectedPack, setSelectedPack] = useState<TokenPack | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<"INR" | "USDT">("INR");
 
   const handleBuyPack = (pack: TokenPack) => {
     setSelectedPack(pack);
@@ -33,7 +35,7 @@ const Buy = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-20">
+    <div className="min-h-screen bg-background pb-20">
       <Header />
       
       <main className="max-w-2xl mx-auto px-4 py-4">
@@ -46,48 +48,92 @@ const Buy = () => {
           Back
         </Button>
 
-        <h1 className="text-2xl font-bold mb-4">Buy Token Packs</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center">Buy</h1>
 
-        <div className="space-y-4">
-          {tokenPacks.map((pack) => (
-            <Card key={pack.name} className="overflow-hidden">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold mb-1">{pack.name}</h3>
-                    <p className="text-2xl font-bold text-primary">₹{pack.amount}</p>
+        {/* Currency Tabs */}
+        <div className="flex justify-center gap-8 mb-6">
+          <button
+            onClick={() => setActiveTab("INR")}
+            className={`text-xl pb-2 transition-all ${
+              activeTab === "INR"
+                ? "text-foreground font-semibold border-b-2 border-primary"
+                : "text-muted-foreground"
+            }`}
+          >
+            INR
+          </button>
+          <button
+            onClick={() => setActiveTab("USDT")}
+            className={`text-xl pb-2 transition-all ${
+              activeTab === "USDT"
+                ? "text-foreground font-semibold border-b-2 border-primary"
+                : "text-muted-foreground"
+            }`}
+          >
+            USDT
+          </button>
+        </div>
+
+        {/* Income Banner */}
+        <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-6 mb-6 text-center text-primary-foreground">
+          <div className="text-3xl font-bold mb-1">
+            2.9% + 6 <span className="text-lg font-normal">income per each order</span>
+          </div>
+          <div className="text-sm opacity-90">(Higher level, Higher income per order)</div>
+        </div>
+
+        {/* Token Pack List */}
+        <div className="space-y-3">
+          {tokenPacks.map((pack) => {
+            const incomePercent = ((pack.fixedReward + pack.commission) / pack.amount * 100).toFixed(1);
+            
+            return (
+              <div
+                key={pack.name}
+                className="bg-card rounded-xl p-4 flex items-center justify-between border border-border hover:border-primary/50 transition-colors"
+              >
+                <div className="flex items-center gap-4 flex-1">
+                  {/* Rupee Icon */}
+                  <div className="w-14 h-14 rounded-full bg-foreground flex items-center justify-center flex-shrink-0">
+                    <IndianRupee className="w-7 h-7 text-background" />
+                  </div>
+
+                  {/* Pack Details */}
+                  <div className="flex-1">
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <span className="text-2xl font-bold">{pack.amount.toFixed(2)} INR</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                      <span>Bank</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between mt-2">
+                      <div>
+                        <div className="text-sm text-muted-foreground">Income</div>
+                        <div className="font-semibold">
+                          ₹{(pack.fixedReward + pack.commission).toFixed(2)}{" "}
+                          <span className="text-success text-sm">({incomePercent}%+6)</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm text-muted-foreground">Balance</div>
+                        <div className="font-semibold">+ {pack.total.toFixed(2)}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Buy Amount:</span>
-                    <span className="font-semibold">₹{pack.amount}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Fixed Reward:</span>
-                    <span className="font-semibold">₹{pack.fixedReward}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">7% Commission:</span>
-                    <span className="font-semibold">₹{pack.commission}</span>
-                  </div>
-                </div>
 
-                <div className="bg-success/10 rounded-lg p-3 mb-4 text-center">
-                  <p className="text-sm text-muted-foreground mb-1">Total Return</p>
-                  <p className="text-2xl font-bold text-success">₹{pack.total}</p>
-                </div>
-
+                {/* Buy Button */}
                 <Button
-                  className="w-full bg-primary hover:bg-primary/90"
+                  className="ml-4 bg-primary hover:bg-primary/90 text-primary-foreground px-8 rounded-full"
                   onClick={() => handleBuyPack(pack)}
                 >
-                  Buy Now
+                  Buy
                 </Button>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            );
+          })}
         </div>
       </main>
 

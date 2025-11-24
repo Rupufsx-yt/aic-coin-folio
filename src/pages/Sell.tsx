@@ -15,6 +15,7 @@ const Sell = () => {
   const users = JSON.parse(localStorage.getItem("users") || "[]");
   const currentUser = users.find((u: any) => u.id === user.id);
   const balance = currentUser?.balance || 0;
+  const hasPurchased = currentUser?.hasPurchased || false;
   
   const [formData, setFormData] = useState({
     amount: "",
@@ -25,6 +26,11 @@ const Sell = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!hasPurchased) {
+      toast.error("Buy at least 1 order first to enable withdrawals");
+      return;
+    }
     
     const amount = Number(formData.amount);
     

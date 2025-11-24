@@ -42,6 +42,20 @@ const PaymentModal = ({ open, onClose, pack }: PaymentModalProps) => {
       return;
     }
 
+    // Mark user as having made a purchase
+    const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const users = JSON.parse(localStorage.getItem("users") || "[]");
+    
+    const updatedUsers = users.map((u: any) => {
+      if (u.id === currentUser.id) {
+        return { ...u, hasPurchased: true };
+      }
+      return u;
+    });
+    
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+    localStorage.setItem("user", JSON.stringify({ ...currentUser, hasPurchased: true }));
+
     toast.success("Payment submitted successfully! Order is now pending approval.");
     onClose();
     setUpiId("");

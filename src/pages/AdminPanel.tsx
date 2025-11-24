@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Minus, Users } from "lucide-react";
+import { ArrowLeft, Plus, Minus, Users, QrCode, Upload } from "lucide-react";
+import defaultQR from "@/assets/payment-qr.jpg";
 import {
   Table,
   TableBody,
@@ -25,11 +26,24 @@ interface User {
 const AdminPanel = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [amounts, setAmounts] = useState<{ [key: string]: string }>({});
+  const [qrCode, setQrCode] = useState<string>(defaultQR);
+  const [qrPreview, setQrPreview] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
     loadUsers();
+    loadQRCode();
   }, []);
+
+  const loadQRCode = () => {
+    const savedQR = localStorage.getItem("paymentQR");
+    if (savedQR) {
+      setQrCode(savedQR);
+      setQrPreview(savedQR);
+    } else {
+      setQrPreview(defaultQR);
+    }
+  };
 
   const loadUsers = () => {
     const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
@@ -90,6 +104,28 @@ const AdminPanel = () => {
 
     // Refresh the user list to show updated balance
     loadUsers();
+  };
+
+  const handleQRUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setQrPreview(result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const updateQRCode = () => {
+    if (!qrPreview) {
+      toast.error("Please upload a QR code first");
+      return;
+    }
+    localStorage.setItem("paymentQR", qrPreview);
+    setQrCode(qrPreview);
+    toast.success("Payment QR code updated successfully");
   };
 
   return (
@@ -178,6 +214,62 @@ const AdminPanel = () => {
                   )}
                 </TableBody>
               </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <QrCode className="w-5 h-5" />
+              Manage Payment QR Code
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-semibold mb-3">Current QR Code</h3>
+                {qrCode && (
+                  <img 
+                    src={qrCode} 
+                    alt="Current Payment QR" 
+                    className="w-full max-w-xs rounded-lg border border-border"
+                  />
+                )}
+              </div>
+              <div>
+                <h3 className="font-semibold mb-3">Upload New QR Code</h3>
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed border-muted rounded-lg p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleQRUpload}
+                      className="hidden"
+                      id="qr-upload"
+                    />
+                    <label htmlFor="qr-upload" className="cursor-pointer">
+                      <Upload className="w-8 h-8 mx-auto mb-2 text-primary" />
+                      <p className="text-sm text-muted-foreground">
+                        Click to upload QR code image
+                      </p>
+                    </label>
+                  </div>
+                  {qrPreview && qrPreview !== qrCode && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">Preview:</p>
+                      <img 
+                        src={qrPreview} 
+                        alt="QR Preview" 
+                        className="w-full max-w-xs rounded-lg border border-border mb-3"
+                      />
+                      <Button onClick={updateQRCode} className="w-full">
+                        Update QR Code
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

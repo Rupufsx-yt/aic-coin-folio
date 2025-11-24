@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
+import defaultQR from "@/assets/payment-qr.jpg";
 
 interface PaymentModalProps {
   open: boolean;
@@ -20,6 +21,14 @@ const PaymentModal = ({ open, onClose, pack }: PaymentModalProps) => {
   const [upiId, setUpiId] = useState("");
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [qrCode, setQrCode] = useState<string>(defaultQR);
+
+  useEffect(() => {
+    const savedQR = localStorage.getItem("paymentQR");
+    if (savedQR) {
+      setQrCode(savedQR);
+    }
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -70,26 +79,16 @@ const PaymentModal = ({ open, onClose, pack }: PaymentModalProps) => {
           <DialogTitle>Complete Payment - {pack.name}</DialogTitle>
         </DialogHeader>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <h3 className="font-bold text-primary mb-3">Payment Information</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex">
-              <span className="w-32 text-muted-foreground">Name:</span>
-              <span className="font-mono font-semibold">Rupu Buragohain</span>
-            </div>
-            <div className="flex">
-              <span className="w-32 text-muted-foreground">Bank:</span>
-              <span className="font-mono">India Post Payment Bank</span>
-            </div>
-            <div className="flex">
-              <span className="w-32 text-muted-foreground">Account:</span>
-              <span className="font-mono">006010146665</span>
-            </div>
-            <div className="flex">
-              <span className="w-32 text-muted-foreground">IFSC Code:</span>
-              <span className="font-mono">IPOS0000001</span>
-            </div>
-          </div>
+        <div className="bg-card border border-border rounded-lg p-4 mb-4 text-center">
+          <h3 className="font-bold text-foreground mb-3">Scan QR Code to Pay</h3>
+          <img 
+            src={qrCode} 
+            alt="Payment QR Code" 
+            className="w-full max-w-sm mx-auto rounded-lg"
+          />
+          <p className="text-sm text-muted-foreground mt-3">
+            Scan and pay with any BHIM UPI app
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

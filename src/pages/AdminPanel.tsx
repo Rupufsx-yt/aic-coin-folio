@@ -50,13 +50,19 @@ const AdminPanel = () => {
     }
 
     const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
+    let updatedUserForId: User | null = null;
+
     const updatedUsers = storedUsers.map((user: User) => {
       if (user.id === userId) {
         const currentBalance = user.balance || 0;
-        const newBalance = operation === "increase" 
-          ? currentBalance + amount 
-          : Math.max(0, currentBalance - amount);
-        return { ...user, balance: newBalance };
+        const newBalance =
+          operation === "increase"
+            ? currentBalance + amount
+            : Math.max(0, currentBalance - amount);
+
+        const updatedUser = { ...user, balance: newBalance };
+        updatedUserForId = updatedUser;
+        return updatedUser;
       }
       return user;
     });
@@ -64,9 +70,24 @@ const AdminPanel = () => {
     localStorage.setItem("users", JSON.stringify(updatedUsers));
     setUsers(updatedUsers);
 
-    toast.success(`Balance ${operation === "increase" ? "increased" : "decreased"} by ₹${amount.toFixed(2)}`);
+    // If the edited user is currently logged in, also update the single `user` record
+    if (updatedUserForId) {
+      const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+      if (currentUser && currentUser.id === userId) {
+        localStorage.setItem(
+          "user",
+          JSON.stringify({ ...currentUser, balance: updatedUserForId.balance })
+        );
+      }
+    }
+
+    toast.success(
+      `Balance ${operation === "increase" ? "increased" : "decreased"} by ₹${amount.toFixed(
+        2
+      )}`
+    );
     setAmounts({ ...amounts, [userId]: "" });
-    
+
     // Refresh the user list to show updated balance
     loadUsers();
   };

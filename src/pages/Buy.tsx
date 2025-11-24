@@ -77,7 +77,7 @@ const Buy = () => {
         {/* Income Banner */}
         <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-6 mb-6 text-center text-primary-foreground">
           <div className="text-3xl font-bold mb-1">
-            2.9% + 6 <span className="text-lg font-normal">income per each order</span>
+            14% + 6 rs <span className="text-lg font-normal">income per each order</span>
           </div>
           <div className="text-sm opacity-90">(Higher level, Higher income per order)</div>
         </div>

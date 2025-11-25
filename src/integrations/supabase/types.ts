@@ -14,7 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_settings: {
+        Row: {
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          pack_name: string
+          payment_screenshot: string | null
+          status: string | null
+          total_return: number
+          updated_at: string | null
+          upi_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          pack_name: string
+          payment_screenshot?: string | null
+          status?: string | null
+          total_return: number
+          updated_at?: string | null
+          upi_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          pack_name?: string
+          payment_screenshot?: string | null
+          status?: string | null
+          total_return?: number
+          updated_at?: string | null
+          upi_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          balance: number | null
+          created_at: string | null
+          id: string
+          name: string
+          password: string
+          phone: string
+          referral_code: string | null
+        }
+        Insert: {
+          balance?: number | null
+          created_at?: string | null
+          id: string
+          name: string
+          password: string
+          phone: string
+          referral_code?: string | null
+        }
+        Update: {
+          balance?: number | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          password?: string
+          phone?: string
+          referral_code?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

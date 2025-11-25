@@ -1,25 +1,50 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import MobileNav from "@/components/MobileNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Order {
   id: string;
+  pack_name: string;
   amount: number;
-  type: "Buy" | "Sell";
-  status: "Pending" | "Approved" | "Rejected";
-  date: string;
+  total_return: number;
+  status: string;
+  created_at: string;
 }
 
-const mockOrders: Order[] = [];
-
 const Orders = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
   const [filter, setFilter] = useState<"All" | "Pending" | "Approved" | "Rejected">("All");
 
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  const loadOrders = async () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    if (!user.id) return;
+
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Failed to load orders:", error);
+      return;
+    }
+
+    if (data) {
+      setOrders(data);
+    }
+  };
+
   const filteredOrders = filter === "All" 
-    ? mockOrders 
-    : mockOrders.filter(order => order.status === filter);
+    ? orders 
+    : orders.filter(order => order.status === filter);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -65,10 +90,12 @@ const Orders = () => {
               <CardContent className="p-4">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <div className="text-xl font-bold mb-1">₹{order.amount}</div>
-                    <div className="text-sm text-muted-foreground mb-1">Type: {order.type}</div>
-                    <div className="text-xs text-muted-foreground mb-1">Order ID: {order.id}</div>
-                    <div className="text-xs text-muted-foreground">Date: {order.date}</div>
+                    <div className="font-semibold mb-1">{order.pack_name}</div>
+                    <div className="text-sm text-muted-foreground mb-1">Amount: ₹{order.amount.toFixed(2)}</div>
+                    <div className="text-sm text-success mb-1">Total Return: ₹{order.total_return.toFixed(2)}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Date: {new Date(order.created_at).toLocaleDateString()}
+                    </div>
                   </div>
                   <Badge className={getStatusColor(order.status)}>
                     {order.status}

@@ -1,22 +1,41 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import MobileNav from "@/components/MobileNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart, HandCoins, Plus, Gift, GraduationCap } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { uid, balance } = useMemo(() => {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    const currentUser = users.find((u: any) => u.id === user.id);
-    return {
-      uid: currentUser?.id || user.id || "DT4710",
-      balance: currentUser?.balance || 0,
-    };
+  const [uid, setUid] = useState("");
+  const [balance, setBalance] = useState(0);
+
+  useEffect(() => {
+    loadUserData();
   }, []);
+
+  const loadUserData = async () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    if (user.id) {
+      setUid(user.id);
+      
+      // Fetch latest balance from database
+      const { data } = await supabase
+        .from("users")
+        .select("balance")
+        .eq("id", user.id)
+        .single();
+
+      if (data) {
+        setBalance(data.balance || 0);
+        // Update localStorage with latest balance
+        user.balance = data.balance;
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-muted/30 pb-20">

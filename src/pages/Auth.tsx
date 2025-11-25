@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Coins } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -30,7 +31,7 @@ const Auth = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isLogin) {
@@ -42,21 +43,26 @@ const Auth = () => {
         return;
       }
       
-      // Check if user exists
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
-      console.log("All users:", users);
-      console.log("Trying to login with:", { phone, password });
+      // Check if user exists in database
+      const { data: users, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("phone", phone)
+        .eq("password", password);
+
+      if (error) {
+        toast.error("Login failed");
+        return;
+      }
       
-      const user = users.find((u: any) => u.phone === phone && u.password === password);
-      console.log("Found user:", user);
-      
-      if (!user) {
+      if (!users || users.length === 0) {
         toast.error("Invalid phone number or password");
         return;
       }
       
+      const user = users[0];
       toast.success("Login successful!");
-      localStorage.setItem("user", JSON.stringify({ phone: user.phone, id: user.id, name: user.name }));
+      localStorage.setItem("user", JSON.stringify({ phone: user.phone, id: user.id, name: user.name, balance: user.balance }));
       navigate("/dashboard");
     } else {
       const name = formData.name.trim();
@@ -68,34 +74,45 @@ const Auth = () => {
         return;
       }
       
-      // Check if user already exists
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
-      const existingUser = users.find((u: any) => u.phone === phone);
+      // Check if user already exists in database
+      const { data: existingUsers } = await supabase
+        .from("users")
+        .select("id")
+        .eq("phone", phone);
       
-      if (existingUser) {
+      if (existingUsers && existingUsers.length > 0) {
         toast.error("Phone number already registered");
         return;
       }
       
-      // Create new user
+      // Create new user in database
       const newUser = {
+        id: "DT" + Math.floor(1000 + Math.random() * 9000),
         name: name,
         phone: phone,
         password: password,
-        id: "DT" + Math.floor(1000 + Math.random() * 9000),
+        referral_code: formData.referral || null,
         balance: 0
       };
       
-      users.push(newUser);
-      localStorage.setItem("users", JSON.stringify(users));
-      console.log("New user created:", newUser);
-      
-      if (formData.referral) {
-        toast.success("Referral bonus of ₹50 credited to the referrer!");
+      const { data, error } = await supabase
+        .from("users")
+        .insert([newUser])
+        .select();
+
+      if (error) {
+        toast.error("Sign up failed");
+        return;
       }
-      toast.success("Account created successfully!");
-      localStorage.setItem("user", JSON.stringify({ phone: newUser.phone, id: newUser.id, name: newUser.name }));
-      navigate("/dashboard");
+      
+      if (data && data.length > 0) {
+        if (formData.referral) {
+          toast.success("Referral bonus of ₹50 credited to the referrer!");
+        }
+        toast.success("Account created successfully!");
+        localStorage.setItem("user", JSON.stringify({ phone: data[0].phone, id: data[0].id, name: data[0].name, balance: data[0].balance }));
+        navigate("/dashboard");
+      }
     }
   };
 

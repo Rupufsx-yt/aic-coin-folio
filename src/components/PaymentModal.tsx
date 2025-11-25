@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
 import defaultQR from "@/assets/payment-qr.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PaymentModalProps {
   open: boolean;
@@ -24,11 +25,20 @@ const PaymentModal = ({ open, onClose, pack }: PaymentModalProps) => {
   const [qrCode, setQrCode] = useState<string>(defaultQR);
 
   useEffect(() => {
-    const savedQR = localStorage.getItem("paymentQR");
-    if (savedQR) {
-      setQrCode(savedQR);
-    }
+    loadQRCode();
   }, []);
+
+  const loadQRCode = async () => {
+    const { data } = await supabase
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", "payment_qr")
+      .single();
+
+    if (data?.setting_value) {
+      setQrCode(data.setting_value);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -38,7 +48,7 @@ const PaymentModal = ({ open, onClose, pack }: PaymentModalProps) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!upiId) {
@@ -51,25 +61,44 @@ const PaymentModal = ({ open, onClose, pack }: PaymentModalProps) => {
       return;
     }
 
-    // Mark user as having made a purchase
     const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    
-    const updatedUsers = users.map((u: any) => {
-      if (u.id === currentUser.id) {
-        return { ...u, hasPurchased: true };
-      }
-      return u;
-    });
-    
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
-    localStorage.setItem("user", JSON.stringify({ ...currentUser, hasPurchased: true }));
+    if (!currentUser.id) {
+      toast.error("User not found");
+      return;
+    }
 
-    toast.success("Payment submitted successfully! Order is now pending approval.");
-    onClose();
-    setUpiId("");
-    setScreenshot(null);
-    setPreviewUrl("");
+    // Convert screenshot to base64 for storage
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64Screenshot = reader.result as string;
+
+      const { error } = await supabase
+        .from("orders")
+        .insert([
+          {
+            user_id: currentUser.id,
+            pack_name: pack.name,
+            amount: pack.amount,
+            total_return: pack.total,
+            upi_id: upiId,
+            payment_screenshot: base64Screenshot,
+            status: "Pending",
+          },
+        ]);
+
+      if (error) {
+        toast.error("Failed to submit payment details");
+        return;
+      }
+
+      toast.success("Payment submitted successfully! Order is now pending approval.");
+      onClose();
+      setUpiId("");
+      setScreenshot(null);
+      setPreviewUrl("");
+    };
+
+    reader.readAsDataURL(screenshot);
   };
 
   return (

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Minus, Users, QrCode, Upload } from "lucide-react";
 import defaultQR from "@/assets/payment-qr.jpg";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
   TableBody,
@@ -35,27 +36,38 @@ const AdminPanel = () => {
     loadQRCode();
   }, []);
 
-  const loadQRCode = () => {
-    const savedQR = localStorage.getItem("paymentQR");
-    if (savedQR) {
-      setQrCode(savedQR);
-      setQrPreview(savedQR);
+  const loadQRCode = async () => {
+    const { data } = await supabase
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", "payment_qr")
+      .single();
+
+    if (data?.setting_value) {
+      setQrCode(data.setting_value);
+      setQrPreview(data.setting_value);
     } else {
       setQrPreview(defaultQR);
     }
   };
 
-  const loadUsers = () => {
-    const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
-    // Initialize balance if not present
-    const usersWithBalance = storedUsers.map((user: User) => ({
-      ...user,
-      balance: user.balance || 0,
-    }));
-    setUsers(usersWithBalance);
+  const loadUsers = async () => {
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      toast.error("Failed to load users");
+      return;
+    }
+
+    if (data) {
+      setUsers(data);
+    }
   };
 
-  const updateUserBalance = (userId: string, operation: "increase" | "decrease") => {
+  const updateUserBalance = async (userId: string, operation: "increase" | "decrease") => {
     const amount = parseFloat(amounts[userId] || "0");
     
     if (isNaN(amount) || amount <= 0) {
@@ -63,46 +75,48 @@ const AdminPanel = () => {
       return;
     }
 
-    const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
-    let updatedUserForId: User | null = null;
+    // Get current user balance
+    const { data: userData, error: fetchError } = await supabase
+      .from("users")
+      .select("balance")
+      .eq("id", userId)
+      .single();
 
-    const updatedUsers = storedUsers.map((user: User) => {
-      if (user.id === userId) {
-        const currentBalance = user.balance || 0;
-        const newBalance =
-          operation === "increase"
-            ? currentBalance + amount
-            : Math.max(0, currentBalance - amount);
+    if (fetchError || !userData) {
+      toast.error("Failed to fetch user balance");
+      return;
+    }
 
-        const updatedUser = { ...user, balance: newBalance };
-        updatedUserForId = updatedUser;
-        return updatedUser;
-      }
-      return user;
-    });
+    const currentBalance = userData.balance || 0;
+    const newBalance =
+      operation === "increase"
+        ? currentBalance + amount
+        : Math.max(0, currentBalance - amount);
 
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
-    setUsers(updatedUsers);
+    // Update in database
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ balance: newBalance })
+      .eq("id", userId);
 
-    // If the edited user is currently logged in, also update the single `user` record
-    if (updatedUserForId) {
-      const currentUser = JSON.parse(localStorage.getItem("user") || "null");
-      if (currentUser && currentUser.id === userId) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify({ ...currentUser, balance: updatedUserForId.balance })
-        );
-      }
+    if (updateError) {
+      toast.error("Failed to update balance");
+      return;
+    }
+
+    // If the edited user is currently logged in, also update localStorage
+    const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+    if (currentUser && currentUser.id === userId) {
+      currentUser.balance = newBalance;
+      localStorage.setItem("user", JSON.stringify(currentUser));
     }
 
     toast.success(
-      `Balance ${operation === "increase" ? "increased" : "decreased"} by ₹${amount.toFixed(
-        2
-      )}`
+      `Balance ${operation === "increase" ? "increased" : "decreased"} by ₹${amount.toFixed(2)}`
     );
     setAmounts({ ...amounts, [userId]: "" });
 
-    // Refresh the user list to show updated balance
+    // Refresh the user list
     loadUsers();
   };
 
@@ -118,12 +132,22 @@ const AdminPanel = () => {
     }
   };
 
-  const updateQRCode = () => {
+  const updateQRCode = async () => {
     if (!qrPreview) {
       toast.error("Please upload a QR code first");
       return;
     }
-    localStorage.setItem("paymentQR", qrPreview);
+
+    const { error } = await supabase
+      .from("app_settings")
+      .update({ setting_value: qrPreview, updated_at: new Date().toISOString() })
+      .eq("setting_key", "payment_qr");
+
+    if (error) {
+      toast.error("Failed to update QR code");
+      return;
+    }
+
     setQrCode(qrPreview);
     toast.success("Payment QR code updated successfully");
   };

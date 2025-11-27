@@ -15,6 +15,7 @@ interface TokenPack {
 }
 
 const tokenPacks: TokenPack[] = [
+  { name: "Pack 100", amount: 100, fixedReward: 7, commission: 7, total: 114 },
   { name: "Pack A", amount: 200, fixedReward: 14, commission: 14, total: 228 },
   { name: "Pack B", amount: 300, fixedReward: 20, commission: 21, total: 341 },
   { name: "Pack C", amount: 400, fixedReward: 30, commission: 28, total: 458 },

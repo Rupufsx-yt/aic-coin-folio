@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import MobileNav from "@/components/MobileNav";
@@ -9,6 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 const Sell = () => {
   const navigate = useNavigate();
@@ -24,6 +27,27 @@ const Sell = () => {
     accountNumber: "",
     ifscCode: "",
   });
+
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadWithdrawals();
+  }, []);
+
+  const loadWithdrawals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("withdrawals")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setWithdrawals(data || []);
+    } catch (error) {
+      console.error("Error loading withdrawals:", error);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,6 +167,36 @@ const Sell = () => {
                 Submit Withdrawal Request
               </Button>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Withdrawal History</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {withdrawals.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No withdrawals yet</p>
+            ) : (
+              <div className="space-y-3">
+                {withdrawals.map((withdrawal) => (
+                  <div
+                    key={withdrawal.id}
+                    className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
+                  >
+                    <div className="flex-1">
+                      <div className="font-semibold text-lg">₹{Number(withdrawal.amount).toLocaleString()}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {format(new Date(withdrawal.created_at), "dd MMM yyyy, hh:mm a")}
+                      </div>
+                    </div>
+                    <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                      {withdrawal.status}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>

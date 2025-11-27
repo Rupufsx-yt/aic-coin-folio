@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Sell = () => {
   const navigate = useNavigate();
@@ -77,6 +78,14 @@ const Sell = () => {
             <CardTitle>Withdraw Funds</CardTitle>
           </CardHeader>
           <CardContent>
+            <Alert className="mb-6 border-orange-500 bg-orange-50 dark:bg-orange-950/20">
+              <AlertCircle className="h-4 w-4 text-orange-600" />
+              <AlertTitle className="text-orange-800 dark:text-orange-400">Maintenance Notice</AlertTitle>
+              <AlertDescription className="text-orange-700 dark:text-orange-300">
+                Withdrawal feature is under maintenance for 7 days. You will be able to withdraw after the maintenance period ends.
+              </AlertDescription>
+            </Alert>
+
             <div className="mb-6">
               <Label className="text-base">Current Balance</Label>
               <div className="text-3xl font-bold text-primary mt-2">₹{balance.toFixed(2)}</div>
@@ -93,6 +102,7 @@ const Sell = () => {
                   max="3000"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  disabled
                 />
               </div>
 
@@ -103,6 +113,7 @@ const Sell = () => {
                   placeholder="Enter bank name"
                   value={formData.bankName}
                   onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
+                  disabled
                 />
               </div>
 
@@ -113,6 +124,7 @@ const Sell = () => {
                   placeholder="Enter account number"
                   value={formData.accountNumber}
                   onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                  disabled
                 />
               </div>
 
@@ -123,10 +135,11 @@ const Sell = () => {
                   placeholder="Enter IFSC code"
                   value={formData.ifscCode}
                   onChange={(e) => setFormData({ ...formData, ifscCode: e.target.value })}
+                  disabled
                 />
               </div>
 
-              <Button type="submit" className="w-full h-12 text-lg">
+              <Button type="submit" className="w-full h-12 text-lg" disabled>
                 Submit Withdrawal Request
               </Button>
             </form>
